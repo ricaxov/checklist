@@ -1,76 +1,31 @@
-# React + TypeScript + Vite
+# checklist-app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Front-end da todo list. A ideia do projeto esta no
+[README da raiz](../README.md).
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** com o **React Compiler** ligado (via
+  `babel-plugin-react-compiler` no `vite.config.ts`)
+- **TypeScript**
+- **Vite 8** com o `@vitejs/plugin-react`
+- **Prettier** pra formatacao
 
-## React Compiler
+O React Compiler otimiza os componentes sozinho, desde que as convencoes do
+React sejam respeitadas (nome de hook comecando com `use`, hook so no topo do
+componente). Detalhes na [documentacao](https://react.dev/learn/react-compiler).
+Ele deixa o dev e o build um pouco mais lentos em troca disso.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Comandos npm
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+Os scripts ficam no `package.json` desta pasta, entao rode a partir daqui:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install       # instala as dependencias
+npm run dev       # sobe o servidor de desenvolvimento do Vite
+npm run build     # roda o tsc -b e gera o build de producao em dist/
+npm run format    # formata os arquivos com o Prettier
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+A config do Prettier esta no `.prettierrc` (sem ponto e virgula, aspas
+simples, virgula no final, 80 colunas).
