@@ -29,27 +29,44 @@ sem clique fazendo nada.
   |---|---|---|
   | `TaskForm` | nada (ainda) | os três campos |
   | `TaskList` | título + array | desenha o quadro |
-  | `TaskRow` | uma task | uma linha; decide sozinha se rabisca, olhando `completed_at` |
+  | `TaskRow` | uma task | uma linha; decide sozinha se rabisca, olhando `completedAt` |
 
   O `App` decide **quais** tarefas vão em cada `TaskList` — e é aí que a
   ordenação da Fase 5 entra, sem tocar em componente nenhum.
 
-- [x] **Onde ficam os dados falsos?** → arquivo separado, `src/mock.ts`.
+- [x] **Onde ficam os dados falsos?** → arquivo separado, `src/data/mock.ts`.
 
   O `App.tsx` ganha só uma linha de `import`. Na Fase 4 essa linha vira a
   chamada do Supabase e o arquivo é apagado — nada de garimpar array no meio do
   arquivo que mais se mexe.
 
   Ganho escondido: pra escrever o array em TypeScript é preciso declarar o
-  **tipo `Task`** com os campos da Fase 1 (`id`, `user_id`, `description`,
-  `due_at`, `importance`, `completed_at`). Esse tipo é o mesmo que o Supabase
-  vai devolver — então na Fase 4 muda a *origem* do array e mais nada. Os
-  componentes nem ficam sabendo.
+  **tipo `Task`** com os campos da Fase 1 (`id`, `userId`, `description`,
+  `dueAt`, `importance`, `completedAt`). É ele que os componentes conhecem —
+  a origem do array pode mudar sem nenhum deles ficar sabendo.
 
   **6 itens**, escolhidos pra pegar os casos chatos agora e não no celular
   depois: 4 pendentes e 2 feitas; uma com descrição comprida (quebra de linha
   no celular), uma com prazo já vencido, uma com prazo longe, importâncias 1 e
   10 nas pontas.
+
+- [x] **O front usa a mesma caixa do banco?** → **não.** camelCase no front,
+      snake_case só no banco.
+
+  O Postgres tem `user_id`, `due_at`, `completed_at` (Fase 1); o tipo `Task`
+  tem `userId`, `dueAt`, `completedAt`. Vira sinal de leitura: snake_case
+  significa "isto é linha de banco" — e linha de banco não circula pela tela.
+
+  **O preço vence na Fase 4.** O Supabase devolve as colunas com o nome que
+  elas têm no Postgres. Então o que chega da rede **não é** um `Task`: é uma
+  linha crua que precisa ser traduzida — e o mesmo na volta, ao gravar.
+
+  Isso cancela o "muda só a origem do array" que valeria se as duas caixas
+  fossem iguais. A tradução tem que ficar em **um lugar só**, no arquivo que
+  fala com o Supabase (`toTask(row)` / `toRow(task)`), nunca espalhada pelos
+  componentes. Espalhada, cada coluna nova vira dois esquecimentos possíveis,
+  e o TypeScript não pega nenhum dos dois — o objeto simplesmente chega sem o
+  campo.
 
 - [x] **Como a importância aparece na tela?** → **não aparece.** Existe no
       formulário e no cálculo de prioridade, e só. (O draft mostra a coluna, mas
@@ -179,14 +196,14 @@ normal, com barra de endereço e tudo. Com manifest, abre em tela cheia, com
 
 1. Declarar o tipo `Task` com os seis campos da Fase 1. Ele é o contrato entre
    tudo daqui pra frente.
-2. `src/mock.ts`: exportar um array de 6 `Task`, com os casos chatos listados no
-   Passo 1.
+2. `src/data/mock.ts`: exportar um array de 6 `Task`, com os casos chatos
+   listados no Passo 1.
 3. `TaskRow`: uma linha. Recebe uma task, formata a data em
    `DIA/MES/ANO HORA:MINUTO`, mostra os dois ícones, e risca + reduz opacidade
-   quando `completed_at` não é nulo. **Sem coluna de importância.**
+   quando `completedAt` não é nulo. **Sem coluna de importância.**
 4. `TaskList`: recebe título e array, desenha o quadro e repete `TaskRow`.
 5. `TaskForm`: os três campos, sem nenhum comportamento.
-6. `App`: monta os três, filtrando o mock em duas listas por `completed_at`.
+6. `App`: monta os três, filtrando o mock em duas listas por `completedAt`.
 7. Abrir no celular pela rede local (`npm run dev -- --host`) **antes** de
    publicar — é onde a tabela aperta.
 

@@ -1,8 +1,8 @@
 export interface Task {
   id: string
-  user_id: string
+  userId: string
   description: string
-  due_at: string
+  dueAt: string
   importance: number
-  completed_at: string | null
+  completedAt: string | null
 }
