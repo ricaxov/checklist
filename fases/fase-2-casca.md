@@ -19,42 +19,55 @@ sem clique fazendo nada.
 
 ### Decisões
 
-- [ ] **Como quebrar em componentes?** O draft tem três blocos (formulário,
-      lista ativa, Done). Isso são 3 componentes? 5? 1 só por enquanto?
+- [x] **Como quebrar em componentes?** → **3**, quebrados pelo que se repete.
 
-  > resposta:
+  O reflexo é `Formulário` + `ListaAtiva` + `ListaDone`. Mas a lista ativa e a
+  Done são **o mesmo quadro**: mesmas colunas, mesmos dois ícones. Só mudam o
+  título, a ordenação e o riscado. Duas cópias = corrigir tudo duas vezes.
 
-- [ ] **Onde ficam os dados falsos?** Array no topo do `App.tsx`? Arquivo
-      separado? Quantos itens pra testar direito?
+  | componente | recebe | responsabilidade |
+  |---|---|---|
+  | `TaskForm` | nada (ainda) | os três campos |
+  | `TaskList` | título + array | desenha o quadro |
+  | `TaskRow` | uma task | uma linha; decide sozinha se rabisca, olhando `completed_at` |
 
-  > resposta:
+  O `App` decide **quais** tarefas vão em cada `TaskList` — e é aí que a
+  ordenação da Fase 5 entra, sem tocar em componente nenhum.
 
-- [ ] **Como a importância aparece na tela?** O README diz pra exibir só
-      descrição, data e is_done. Então ela some da lista? Aparece só no
-      formulário? Vira estrela, cor, nada?
+- [x] **Onde ficam os dados falsos?** → arquivo separado, `src/mock.ts`.
 
-  > resposta:
+  O `App.tsx` ganha só uma linha de `import`. Na Fase 4 essa linha vira a
+  chamada do Supabase e o arquivo é apagado — nada de garimpar array no meio do
+  arquivo que mais se mexe.
 
-- [ ] **Como a data é exibida?** O draft pede `DIA/MES/ANO HORA:MINUTO`. Data
-      absoluta, ou "em 3 dias"? As duas?
+  Ganho escondido: pra escrever o array em TypeScript é preciso declarar o
+  **tipo `Task`** com os campos da Fase 1 (`id`, `user_id`, `description`,
+  `due_at`, `importance`, `completed_at`). Esse tipo é o mesmo que o Supabase
+  vai devolver — então na Fase 4 muda a *origem* do array e mais nada. Os
+  componentes nem ficam sabendo.
 
-  > resposta:
+  **6 itens**, escolhidos pra pegar os casos chatos agora e não no celular
+  depois: 4 pendentes e 2 feitas; uma com descrição comprida (quebra de linha
+  no celular), uma com prazo já vencido, uma com prazo longe, importâncias 1 e
+  10 nas pontas.
 
-- [ ] **Como uma tarefa feita aparece?** No draft ela está riscada. Risca só, ou
-      muda cor / opacidade também?
+- [x] **Como a importância aparece na tela?** → **não aparece.** Existe no
+      formulário e no cálculo de prioridade, e só. (O draft mostra a coluna, mas
+      o README já decidiu contra — a coluna sai.)
 
-  > resposta:
+- [x] **Como a data é exibida?** → `DIA/MES/ANO HORA:MINUTO`, absoluta. Nada de
+      "em 3 dias".
 
-- [ ] **Qual estrutura de HTML pra lista?** `<table>` de verdade, ou divs com as
-      classes de grid do Bootstrap? Pensa em como cada uma se comporta numa tela
-      estreita de celular.
+- [x] **Como uma tarefa feita aparece?** → sai da lista ativa, entra na Done,
+      riscada e com opacidade reduzida.
 
-  > resposta:
+- [x] **Qual estrutura de HTML pra lista?** → Bootstrap.
 
 ### Feito quando
 
 - [ ] `npm run dev` mostra a tela parecida com o draft
 - [ ] Abre no celular pela rede local sem ficar espremido
+      (`npm run dev -- --host`, e acessar o IP da máquina pelo Safari)
 
 ---
 
@@ -64,27 +77,42 @@ GitHub Pages de repositório não serve na raiz do domínio, e sim em
 `usuario.github.io/nome-do-repo/`. Um build feito pra raiz procura os assets no
 lugar errado e a página abre **em branco**, sem erro visível na tela.
 
-- [ ] **Qual vai ser a URL exata do site?**
+- [x] **Qual vai ser a URL exata do site?**
 
-  > resposta:
+  O repositório é `github.com/ricaxov/checklist`, e ele **não** se chama
+  `ricaxov.github.io` — então é um *project site*, e a regra é fixa:
+
+  ```
+  https://ricaxov.github.io/checklist/     →     base: '/checklist/'
+  ```
 
 - [ ] `base` configurado no `vite.config.ts`
-- [ ] `npm run build` e conferido que os caminhos no `dist/index.html` batem com
-      a URL
+- [ ] `npm run build` e conferido que os caminhos no `index.html` gerado batem
+      com a URL (têm que começar com `/checklist/`, não com `/`)
+
+> Efeito colateral esperado: o dev server passa a servir em
+> `http://localhost:5173/checklist/`. Não é bug.
 
 ---
 
 ## Passo 3 — Publicar
 
-- [ ] **Deploy na mão ou GitHub Action?** Na mão é menos peça pra configurar;
-      Action publica sozinha a cada push. Qual dói menos agora?
+- [x] **Deploy na mão ou GitHub Action?** → **na mão.**
 
-  > resposta:
+- [x] **De onde o Pages serve?** → **branch `main`, pasta `/docs`.**
 
-- [ ] **De onde o Pages serve?** Branch `gh-pages`, pasta `/docs`, ou direto do
-      Action? (Settings → Pages, no repositório)
+  Combina com o "na mão": o deploy vira `build` + `commit` + `push`, sem branch
+  extra e sem ferramenta extra, e os arquivos publicados ficam visíveis no
+  repositório.
 
-  > resposta:
+  **A mordida:** o Pages só aceita a **raiz** ou **`/docs`** — não aceita
+  `checklist-app/dist`. Como o projeto Vite mora em `checklist-app/`, o build
+  precisa cuspir em `../docs` (raiz do repo). É uma linha no `vite.config.ts`,
+  junto do `base`. Vai precisar também de `emptyOutDir`, porque o Vite se
+  recusa a limpar sozinho uma pasta fora da raiz do projeto.
+
+  Conferir de quebra que `docs/` **não** está no `.gitignore` — o `dist` está,
+  e é justamente por isso que ele não serve.
 
 - [ ] Publicado
 - [ ] **Abre no PC** sem tela branca
@@ -103,26 +131,103 @@ normal, com barra de endereço e tudo. Com manifest, abre em tela cheia, com
 
 ### Decisões
 
-- [ ] **Nome do app** (o que aparece embaixo do ícone — tela de início corta
-      nome comprido)
+- [x] **Nome do app** → `Checklist`
 
-  > resposta:
+- [x] **O ícone** → fica pra depois; a imagem será criada por você.
 
-- [ ] **O ícone.** Qual imagem? Quais tamanhos o iOS pede?
+  Enquanto não existir, o iOS usa um print da página como ícone. Feio, mas não
+  impede nada nesta fase. Quando for fazer: o iOS lê a tag
+  `<link rel="apple-touch-icon">` — um **PNG 180×180** — e não se contenta só
+  com o `icons` do manifest.
 
-  > resposta:
+- [x] **Cor de fundo / tema** → **tema escuro nativo do Bootstrap.**
 
-- [ ] **Cor de fundo / tema** (a cor que aparece enquanto o app abre)
+  O Bootstrap 5.3 já tem modo escuro pronto. Um atributo no `<html>` e todo
+  componente vira escuro de uma vez, sem inventar paleta:
 
-  > resposta:
+  ```html
+  <html lang="pt-BR" data-bs-theme="dark">
+  ```
+
+  O fundo que ele usa é **`#212529`**. Esse mesmo valor vai nos outros três
+  lugares que pintam tela — se divergirem, o app pisca de uma cor pra outra ao
+  abrir:
+
+  | onde | pra quê |
+  |---|---|
+  | `<meta name="theme-color" content="#212529">` | barra do navegador / do app |
+  | `background_color` no manifest | a tela enquanto o app carrega |
+  | `theme_color` no manifest | a cor que o sistema usa em volta |
+
+  Vale também `<meta name="color-scheme" content="dark">`: deixa os campos do
+  formulário e a barra de rolagem escuros, e evita o flash branco antes do CSS
+  carregar.
 
 ### Feito quando
 
 - [ ] `manifest.json` no `public/`, referenciado no `index.html`
-- [ ] Ícones no `public/`
+- [ ] `data-bs-theme="dark"` no `<html>` e as três cores batendo em `#212529`
 - [ ] Adicionado à tela de início do iPhone
 - [ ] **Abre sem a barra do Safari** ← é isso que prova que funcionou
-- [ ] O ícone é o seu, não um print da página
+- [ ] (depois) O ícone é o seu, não um print da página
+
+---
+
+## Passo a passo
+
+### 1. A tela (`npm run dev`)
+
+1. Declarar o tipo `Task` com os seis campos da Fase 1. Ele é o contrato entre
+   tudo daqui pra frente.
+2. `src/mock.ts`: exportar um array de 6 `Task`, com os casos chatos listados no
+   Passo 1.
+3. `TaskRow`: uma linha. Recebe uma task, formata a data em
+   `DIA/MES/ANO HORA:MINUTO`, mostra os dois ícones, e risca + reduz opacidade
+   quando `completed_at` não é nulo. **Sem coluna de importância.**
+4. `TaskList`: recebe título e array, desenha o quadro e repete `TaskRow`.
+5. `TaskForm`: os três campos, sem nenhum comportamento.
+6. `App`: monta os três, filtrando o mock em duas listas por `completed_at`.
+7. Abrir no celular pela rede local (`npm run dev -- --host`) **antes** de
+   publicar — é onde a tabela aperta.
+
+### 2. O build pra publicar
+
+8. No `vite.config.ts`, acrescentar ao `defineConfig`:
+
+   ```ts
+   base: '/checklist/',
+   build: {
+     outDir: '../docs',
+     emptyOutDir: true,
+   },
+   ```
+
+9. Criar `checklist-app/public/.nojekyll` (arquivo vazio). O Pages roda Jekyll
+   por padrão; o `.nojekyll` desliga isso. Ficando em `public/`, ele é copiado
+   pro `docs/` a cada build e você nunca mais lembra dele.
+10. `npm run build`. Abrir `docs/index.html` e conferir: os `src`/`href` têm que
+    começar com `/checklist/`.
+
+### 3. Ligar o Pages
+
+11. Commitar `docs/` e dar push.
+12. No GitHub: **Settings → Pages → Source: Deploy from a branch**, branch
+    `main`, pasta `/docs`. Salvar.
+13. Esperar um ou dois minutos e abrir `https://ricaxov.github.io/checklist/`.
+14. Abrir no Safari do celular.
+
+A partir daqui, publicar é sempre: `npm run build` → commit → push.
+
+### 4. Virar app
+
+15. No `index.html`: `data-bs-theme="dark"` no `<html>`, e as metas de
+    `theme-color` e `color-scheme`.
+16. `public/manifest.json` com `name`, `short_name: "Checklist"`,
+    `start_url: "/checklist/"`, `display: "standalone"`, e as duas cores.
+17. Referenciar o manifest no `<head>`.
+18. Rebuild, push, e **remover e adicionar de novo** o ícone na tela de início
+    do iPhone (ver armadilha do cache abaixo).
+19. Confirmar que abre sem a barra de endereço.
 
 ---
 
@@ -130,12 +235,16 @@ normal, com barra de endereço e tudo. Com manifest, abre em tela cheia, com
 
 **Tela branca no Pages.** `base` errado. Sempre.
 
+**`docs/` ignorado pelo git.** O `.gitignore` do scaffold ignora `dist`. Se o
+build fosse pra lá, o push subiria vazio. É parte do motivo de usar `docs/`.
+
 **Cache do iOS.** Depois de republicar, o app na tela de início pode continuar
 mostrando a versão velha. Remover e adicionar de novo resolve na marra.
 
-**Manifest sozinho não basta no iOS.** O Safari historicamente precisa de umas
-meta tags próprias além do manifest. Vale conferir o que ainda é necessário na
-versão atual do iOS antes de sair chutando.
+**Manifest sozinho não basta no iOS.** O iOS moderno respeita o `display` do
+manifest, mas as tags `apple-mobile-web-app-*` ainda são o que versões mais
+antigas leem, e o ícone continua vindo do `apple-touch-icon`. Conferir o que
+ainda é necessário na versão atual do iOS antes de sair chutando.
 
 ---
 
