@@ -29,12 +29,12 @@ import { useState } from 'react'
 // Sobre o edit: ele é bem maior que o "marcar feito" (envolve formulário, ou edição no lugar, e decidir seropdeclarada e faria ele só depois que o toggle estiver funcionando de ponta a ponta.
 
 // continuar a partir daqui
-interface TaskRowsProps {
-  onEdit: (index: number) => void
-  onDone: (index: number) => void
-}
-export function TaskRow({ onEdit, onDone }: TaskRowsProps) {
-  const [markDone, setMarkDone] = useState(-1)
+// interface TaskRowsProps {
+//   onEdit: (index: number) => void
+//   onDone: (index: number) => void
+// }
+export function TaskRow() {
+  // const [markDone, setMarkDone] = useState(-1)
   // const [selectedIndex, setSelectedIndex] = useState(-1);
   return (
     <>
