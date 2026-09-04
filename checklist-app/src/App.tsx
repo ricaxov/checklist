@@ -1,5 +1,3 @@
-import { TaskRow } from './components/TaskRow'
-
 export function App() {
-  return <TaskRow />
+  return <h1>oie</h1>
 }
