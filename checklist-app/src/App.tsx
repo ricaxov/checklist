@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TaskTable } from './components/TaskTable'
 import { mockTasks } from './data/mock'
 import { TaskForm } from './components/TaskForm'
+import { LoginForm } from './components/LoginForm'
+import type { Session } from '@supabase/supabase-js'
+
 export function App() {
   const [tasks, setTasks] = useState(mockTasks)
+  const [session, setSession] = useState<Session | null | undefined>(null)
+
+  // useEffect(() => {}, [])
 
   const activeTasks = tasks.filter((task) => task.completedAt === null)
   const doneTasks = tasks.filter((task) => task.completedAt !== null)
@@ -23,6 +29,7 @@ export function App() {
 
   return (
     <div className="container py-4">
+      <LoginForm />
       <TaskForm />
       <TaskTable
         heading="Active"
