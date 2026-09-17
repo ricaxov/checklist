@@ -82,11 +82,13 @@ export function LoginForm() {
             </div>
           )}
 
-          <Turnstile
-            ref={captchaRef}
-            siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-            onSuccess={setCaptchaToken}
-          />
+          <div className="d-flex justify-content-center">
+            <Turnstile
+              ref={captchaRef}
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={setCaptchaToken}
+            />
+          </div>
 
           <button
             type="submit"
