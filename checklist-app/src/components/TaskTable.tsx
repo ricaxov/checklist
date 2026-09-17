@@ -5,8 +5,9 @@ interface TaskTableProps {
   tasks: Task[]
   heading: string
   onToggleDone: (id: string) => void
+  onDelete: (id: string) => void
 }
-export function TaskTable({ heading, tasks, onToggleDone }: TaskTableProps) {
+export function TaskTable({ heading, tasks, onToggleDone, onDelete }: TaskTableProps) {
   return (
     <section className="mb-4">
       <h2 className="h5">{heading}</h2>
@@ -27,7 +28,7 @@ export function TaskTable({ heading, tasks, onToggleDone }: TaskTableProps) {
           </thead>
           <tbody>
             {tasks.map((task) => (
-              <TaskRow key={task.id} task={task} onToggleDone={onToggleDone} />
+              <TaskRow key={task.id} task={task} onToggleDone={onToggleDone} onDelete={onDelete} />
             ))}
           </tbody>
         </table>

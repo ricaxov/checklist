@@ -1,8 +1,34 @@
+import { useState, type SubmitEvent } from 'react'
+
 const IMPORTANCE_LEVELS = Array.from({ length: 10 }, (_, i) => i + 1)
 
-export function TaskForm() {
+interface TaskFormProps {
+  onCreate: (input: {
+    description: string
+    dueAt: string
+    importance: number
+  }) => Promise<void>
+}
+export function TaskForm({ onCreate }: TaskFormProps) {
+  const [description, setDescription] = useState('')
+  const [dueAt, setDueAt] = useState('')
+  const [importance, setImportance] = useState('')
+
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    await onCreate({
+      description,
+      dueAt,
+      importance: Number(importance),
+    })
+    setDescription('')
+    setDueAt('')
+    setImportance('')
+  }
+
   return (
-    <form className="row g-2 mb-4">
+    <form className="row g-2 mb-4" onSubmit={handleSubmit}>
       <div className="col-12 col-md-5">
         <div className="form-floating">
           <input
@@ -11,6 +37,8 @@ export function TaskForm() {
             className="form-control"
             placeholder="Description"
             required
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
           />
           <label htmlFor="task-description">Description</label>
         </div>
@@ -24,6 +52,8 @@ export function TaskForm() {
             className="form-control"
             placeholder="Date"
             required
+            value={dueAt}
+            onChange={(event) => setDueAt(event.target.value)}
           />
           <label htmlFor="task-due-at">Date</label>
         </div>
@@ -34,8 +64,9 @@ export function TaskForm() {
           <select
             id="task-importance"
             className="form-select"
-            defaultValue=""
             required
+            value={importance}
+            onChange={(event) => setImportance(event.target.value)}
           >
             <option value="" disabled>
               -
@@ -51,7 +82,7 @@ export function TaskForm() {
       </div>
 
       <div className="col-12 col-md-2 d-grid">
-        <button type="button" className="btn btn-success">
+        <button type="submit" className="btn btn-success">
           Add
         </button>
       </div>

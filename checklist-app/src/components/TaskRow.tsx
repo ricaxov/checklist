@@ -6,8 +6,9 @@ const DONE_CLASSES = 'text-decoration-line-through text-body-secondary'
 interface TaskRowProps {
   task: Task
   onToggleDone: (id: string) => void
+  onDelete: (id: string) => void
 }
-export function TaskRow({ task, onToggleDone }: TaskRowProps) {
+export function TaskRow({ task, onToggleDone, onDelete }: TaskRowProps) {
   const taskDone = task.completedAt !== null
   const toggleLabel = taskDone ? 'Undo' : 'Mark as done'
 
@@ -20,11 +21,14 @@ export function TaskRow({ task, onToggleDone }: TaskRowProps) {
       <td>
         <button
           type="button"
-          className="btn btn-sm btn-outline-secondary"
-          title="Edit"
-          aria-label="Edit"
+          className="btn btn-sm btn-outline-danger"
+          title="Delete"
+          aria-label="Delete"
+          onClick={() => {
+            if (confirm('Delete this task?')) onDelete(task.id)
+          }}
         >
-          ✎
+          ✕
         </button>
       </td>
       <td>
@@ -35,7 +39,9 @@ export function TaskRow({ task, onToggleDone }: TaskRowProps) {
           aria-label={toggleLabel}
           onClick={() => onToggleDone(task.id)}
         >
-          {taskDone ? '↺' : '✓'}
+          <span style={{ fontSize: taskDone ? '1.2em' : undefined, lineHeight: 1 }}>
+            {taskDone ? '↺' : '✓'}
+          </span>
         </button>
       </td>
     </tr>
