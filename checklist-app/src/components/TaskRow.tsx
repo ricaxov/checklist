@@ -8,6 +8,8 @@ interface TaskRowProps {
   onToggleDone: (id: string) => void
   onDelete: (id: string) => void
 }
+const ICON_BTN_STYLE = { width: '2.5rem' }
+
 export function TaskRow({ task, onToggleDone, onDelete }: TaskRowProps) {
   const taskDone = task.completedAt !== null
   const toggleLabel = taskDone ? 'Undo' : 'Mark as done'
@@ -22,6 +24,7 @@ export function TaskRow({ task, onToggleDone, onDelete }: TaskRowProps) {
         <button
           type="button"
           className="btn btn-sm btn-outline-danger"
+          style={ICON_BTN_STYLE}
           title="Delete"
           aria-label="Delete"
           onClick={() => {
@@ -35,6 +38,7 @@ export function TaskRow({ task, onToggleDone, onDelete }: TaskRowProps) {
         <button
           type="button"
           className={`btn btn-sm ${taskDone ? 'btn-outline-secondary' : 'btn-outline-success'}`}
+          style={ICON_BTN_STYLE}
           title={toggleLabel}
           aria-label={toggleLabel}
           onClick={() => onToggleDone(task.id)}
