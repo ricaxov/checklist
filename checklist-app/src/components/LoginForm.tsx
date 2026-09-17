@@ -1,4 +1,5 @@
-import { useState, type SubmitEvent } from 'react'
+import { useState, useRef, type SubmitEvent } from 'react'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { supabase } from '../lib/supabase'
 
 export function LoginForm() {
@@ -6,6 +7,8 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captchaRef = useRef<TurnstileInstance>(null)
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -17,13 +20,18 @@ export function LoginForm() {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: { captchaToken: captchaToken ?? undefined },
       })
 
       if (signInError) {
+        captchaRef.current?.reset()
         setError(signInError.message)
+        setCaptchaToken(null)
         setPassword('')
       }
     } catch (err) {
+      captchaRef.current?.reset()
+      setCaptchaToken(null)
       console.error(err)
       setError('Could not sign in. Check your connection and try again.')
     } finally {
@@ -74,10 +82,16 @@ export function LoginForm() {
             </div>
           )}
 
+          <Turnstile
+            ref={captchaRef}
+            siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+            onSuccess={setCaptchaToken}
+          />
+
           <button
             type="submit"
             className="btn btn-success"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !captchaToken}
           >
             {isSubmitting ? 'Signing in...' : 'Login'}
           </button>
