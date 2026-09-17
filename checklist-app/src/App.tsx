@@ -13,7 +13,6 @@ export function App() {
   const [tasksError, setTasksError] = useState<string | null>(null)
 
   useEffect(() => {
-    // logar login
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -24,37 +23,37 @@ export function App() {
       subscription.unsubscribe()
     }
   }, [])
-  
-  // essa parte daqui ta errada, tem que continuar fazendo o crud e fazer a parte do create ( eu so copiei o read)
-  useEffect(() => {
-    // criar create
+
+  async function handleCreate(input: {
+    description: string
+    dueAt: string
+    importance: number
+  }) {
     if (!session) return
 
-    async function createTask() {
-      setIsLoadingTasks(true)
-      setTasksError(null)
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert({
+        description: input.description,
+        due_at: input.dueAt,
+        importance: input.importance,
+        user_id: session.user.id,
+      })
+      .select(
+        'id, userId:user_id, description, dueAt:due_at, importance, completedAt:completed_at',
+      )
+      .single()
+      .returns<Task>()
 
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(
-          'id, userId:user_id, description, dueAt:due_at, importance, completedAt:completed_at',
-        )
-        .returns<Task[]>()
-
-      if (error) {
-        setTasksError(error.message)
-      } else {
-        setTasks(data)
-      }
-
-      setIsLoadingTasks(false)
+    if (error) {
+      setTasksError(error.message)
+      return
     }
 
-    createTask()
-  }, [session])
+    setTasks((currentTasks) => [...currentTasks, data])
+  }
 
   useEffect(() => {
-    // buscar read
     if (!session) return
 
     async function loadTasks() {
@@ -80,22 +79,42 @@ export function App() {
     loadTasks()
   }, [session])
 
-  // update
-  // delete
+  async function handleDelete(id: string) {
+    const { error } = await supabase.from('tasks').delete().eq('id', id)
+
+    if (error) {
+      setTasksError(error.message)
+      return
+    }
+
+    setTasks((currentTasks) => currentTasks.filter((t) => t.id !== id))
+  }
 
   const activeTasks = tasks.filter((task) => task.completedAt === null)
   const doneTasks = tasks.filter((task) => task.completedAt !== null)
 
-  function handleToggleDone(id: string) {
+  async function handleToggleDone(id: string) {
+    const task = tasks.find((t) => t.id === id)
+    if (!task) return
+
+    const newCompletedAt = task.completedAt ? null : new Date().toISOString()
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({ completed_at: newCompletedAt })
+      .eq('id', id)
+      .select(
+        'id, userId:user_id, description, dueAt:due_at, importance, completedAt:completed_at',
+      )
+      .single()
+      .returns<Task>()
+
+    if (error) {
+      setTasksError(error.message)
+      return
+    }
+
     setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              completedAt: task.completedAt ? null : new Date().toISOString(),
-            }
-          : task,
-      ),
+      currentTasks.map((t) => (t.id === id ? data : t)),
     )
   }
 
@@ -141,16 +160,18 @@ export function App() {
 
   return (
     <div className="container py-4">
-      <TaskForm />
+      <TaskForm onCreate={handleCreate} />
       <TaskTable
         heading="Active"
         tasks={activeTasks}
         onToggleDone={handleToggleDone}
+        onDelete={handleDelete}
       />
       <TaskTable
         heading="Done"
         tasks={doneTasks}
         onToggleDone={handleToggleDone}
+        onDelete={handleDelete}
       />
     </div>
   )
