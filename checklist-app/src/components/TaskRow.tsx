@@ -39,9 +39,7 @@ export function TaskRow({ task, onToggleDone, onDelete }: TaskRowProps) {
           aria-label={toggleLabel}
           onClick={() => onToggleDone(task.id)}
         >
-          <span style={{ fontSize: taskDone ? '1.2em' : undefined, lineHeight: 1 }}>
-            {taskDone ? '↺' : '✓'}
-          </span>
+          {taskDone ? '↺' : '✓'}
         </button>
       </td>
     </tr>
