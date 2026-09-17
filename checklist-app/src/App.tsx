@@ -6,6 +6,12 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import type { Task } from './types/Task'
 
+function taskPriority(task: Task): number {
+  const dayInMs = 1000 * 60 * 60 * 24
+  const dateDelta = (new Date(task.dueAt).getTime() - Date.now()) / dayInMs
+  return task.importance * 0.6 - dateDelta * 0.4
+}
+
 export function App() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -35,7 +41,7 @@ export function App() {
       .from('tasks')
       .insert({
         description: input.description,
-        due_at: input.dueAt,
+        due_at: new Date(input.dueAt).toISOString(),
         importance: input.importance,
         user_id: session.user.id,
       })
@@ -90,8 +96,12 @@ export function App() {
     setTasks((currentTasks) => currentTasks.filter((t) => t.id !== id))
   }
 
-  const activeTasks = tasks.filter((task) => task.completedAt === null)
-  const doneTasks = tasks.filter((task) => task.completedAt !== null)
+  const activeTasks = tasks
+    .filter((task) => task.completedAt === null)
+    .sort((a, b) => taskPriority(b) - taskPriority(a))
+  const doneTasks = tasks
+    .filter((task) => task.completedAt !== null)
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
 
   async function handleToggleDone(id: string) {
     const task = tasks.find((t) => t.id === id)
